@@ -13,14 +13,25 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.conf.urls import include, url
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path
 
 urlpatterns = [
+    # url(r'^admin/', admin.site.urls),
+    # url(r'^tinymce/', include('tinymce.urls')), # 富文本编辑器
+    # url(r'^user/', include(('user.urls','user'), namespace='user-urls')), # 用户模块
+    # url(r'^cart/', include(('cart.urls','cart'), namespace='cart')), # 购物车模块
+    # url(r'^order/', include(('order.urls','order'), namespace='order')), # 订单模块
+    # url(r'^', include(('goods.urls','goods'), namespace='goods')), # 商品模块
     path('admin/', admin.site.urls),
-    path('tinymce/',include('tinymce.urls')),
-    path('user/',include('user.urls')),
-    path('cart/',include('cart.urls')),
-    path('order/',include('order.urls')),
-    path('',include('goods.urls'))
+    path('tinymce/', include('tinymce.urls')),  # 富文本编辑器
+    path('user/', include(('user.urls', 'user'), namespace='user')),  # 用户模块
+    path('cart/', include(('cart.urls', 'cart'), namespace='cart')),  # 购物车模块
+    path('order/', include(('order.urls', 'order'), namespace='order')),  # 订单模块
+    path('', include(('goods.urls', 'goods'), namespace='goods')),  # 商品模块
+
 ]
+
+
+

@@ -17,7 +17,7 @@ import sys
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(BASE_DIR,'apps'))
+# sys.path.insert(0, os.path.join(BASE_DIR,'apps'))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
@@ -115,6 +115,19 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+
+
+# 邮件发送配置
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# 邮件服务器地址
+EMAIL_HOST = 'smtp.163.com'
+EMAIL_PORT = 25
+#发送邮件的邮箱
+EMAIL_HOST_USER = '15195867006@163.com'
+#在邮箱中设置的客户端授权密码
+EMAIL_HOST_PASSWORD = 'VZWCKIKVACFFYIQO'
+#收件人看到的发件人
+EMAIL_FROM = 'freshmall<15195867006@163.com>'
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
