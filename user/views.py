@@ -12,6 +12,9 @@ from itsdangerous import TimedJSONWebSignatureSerializer as Serializer, Signatur
 
 from freshmall.settings import SECRET_KEY, EMAIL_FROM
 from user.models import User
+from utils.mixin import LoginRequiredMixin
+
+
 class RegisterView(View):
     def get(self,request:HttpRequest):
         '''注册页面处理'''
@@ -132,7 +135,7 @@ class LoginView(View):
             return render(request, 'login.html', {'errmsg': '密码错误'})
 
 # /user
-class UserInfoView(View):
+class UserInfoView(LoginRequiredMixin,View):
     '''用户中心'''
     def get(self,request):
         '''显示'''
@@ -140,7 +143,7 @@ class UserInfoView(View):
         return render(request,'user_center_info.html',{'page':'user'})
 
 # /user/address
-class AddressView(View):
+class AddressView(LoginRequiredMixin,View):
     '''用户地址中心'''
     def get(self,request):
         '''显示'''
@@ -148,7 +151,7 @@ class AddressView(View):
 
 
 # /user/order
-class UserOrderView(View):
+class UserOrderView(LoginRequiredMixin,View):
     '''用户订购中心'''
     def get(self,request):
         '''显示'''
