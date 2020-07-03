@@ -1,6 +1,8 @@
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.hashers import check_password
+from django.core.mail import send_mail
 from django.http import HttpResponse, HttpRequest
 from django.shortcuts import render, redirect
-from django.core.mail import send_mail
 import re
 # Create your views here.
 from django.urls import reverse
@@ -50,15 +52,14 @@ class RegisterView(View):
         info = {'confirm':user.id}# 根据情况去自定义数据类型
         token = serializer.dumps(info).decode()
         #2.发送邮件
+        # 组织邮件信息
         subject = 'freshmall用户激活'
-        message = '<a href="http://180.111.171.192:8000/user/active/%s">点击激活</a>'%(token)
+        message = '<a href="http://127.0.0.1:8000/user/active/%s">点击激活</a>' % (token)
         sender = EMAIL_FROM
         receiver = [email]
-        html_msg = message# 如果含有html标签，则使用html_message
-
-        # 会可能出现阻塞，耗时严重
-        send_mail(subject,message,sender,receiver,html_message=message)
-
+        html_msg = message  # 如果含有html标签，则使用html_message
+        # 会可能出现阻塞，耗时严重·采用异步实现「
+        send_mail(subject, message, sender, receiver, html_message=message)
         # 4.返回应答(注册成功之后，跳转至首页)
         return redirect(reverse('goods:index'))
 
@@ -86,4 +87,41 @@ class ActiveView(View):
 class LoginView(View):
     '''登录'''
     def get(self,request):
-        return render(request,'login.html')
+        # 判断是否记住了用户名
+        if 'username' in request.COOKIES:
+            username = request.COOKIES.get('username')
+            checked = 'checked'
+        else:
+            username = ''
+            checked = ''
+        return render(request,'login.html',{'username':username, 'checked':checked})
+
+    def post(self,request):
+        '''登录校验'''
+        #1.接收数据
+        username = request.POST.get('username')
+        password = request.POST.get('pwd')
+        #2. 校验
+        if not all([username,password]):
+            return render(request,'login.html',{'errmsg':'数据不完整'})
+        #3.业务处理
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            if user.is_active:
+                try:
+                    login(request,user)
+                except Exception as e:
+                    print('认证操作：',e)
+                response =  redirect(reverse('goods:index'))
+                remember = request.POST.get('remember')
+                if remember == 'on':
+                    response.set_cookie('username', username, max_age=7*24*3600)
+                else:
+                    response.delete_cookie('username')
+                return response
+
+            else:
+                return render(request, 'login.html', {'errmsg': '账户未激活'})
+        else:
+            return render(request, 'login.html', {'errmsg': '密码错误'})
+
