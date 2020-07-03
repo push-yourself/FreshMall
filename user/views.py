@@ -1,4 +1,5 @@
 from django.contrib.auth import authenticate, login
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import check_password
 from django.core.mail import send_mail
 from django.http import HttpResponse, HttpRequest
@@ -111,8 +112,13 @@ class LoginView(View):
                 try:
                     login(request,user)
                 except Exception as e:
-                    print('认证操作：',e)
-                response =  redirect(reverse('goods:index'))
+                    print('**：',e)
+                # 获取登录后需要跳转的地址:http://127.0.0.1:8000/user/login/?next=/user/
+                # 如果没有,默认跳转至首页
+                next_url = request.GET.get('next',reverse('goods:index'))
+                print(next_url)
+                response =  redirect(next_url)
+                # 判断是否需要记住用户名
                 remember = request.POST.get('remember')
                 if remember == 'on':
                     response.set_cookie('username', username, max_age=7*24*3600)
@@ -125,3 +131,25 @@ class LoginView(View):
         else:
             return render(request, 'login.html', {'errmsg': '密码错误'})
 
+# /user
+class UserInfoView(View):
+    '''用户中心'''
+    def get(self,request):
+        '''显示'''
+        print('================fttr===============')
+        return render(request,'user_center_info.html',{'page':'user'})
+
+# /user/address
+class AddressView(View):
+    '''用户地址中心'''
+    def get(self,request):
+        '''显示'''
+        return render(request,'user_center_site.html',{'page':'address'})
+
+
+# /user/order
+class UserOrderView(View):
+    '''用户订购中心'''
+    def get(self,request):
+        '''显示'''
+        return render(request,'user_center_order.html',{'page':'order'})
