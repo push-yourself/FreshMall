@@ -1,4 +1,4 @@
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import check_password
 from django.core.mail import send_mail
@@ -11,7 +11,7 @@ from django.views.generic.base import View
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer, SignatureExpired
 
 from freshmall.settings import SECRET_KEY, EMAIL_FROM
-from user.models import User
+from user.models import User, Address
 from utils.mixin import LoginRequiredMixin
 
 
@@ -134,20 +134,96 @@ class LoginView(View):
         else:
             return render(request, 'login.html', {'errmsg': '密码错误'})
 
+
+# /user/logout
+class LogoutView(View):
+    '''退出登录'''
+    def get(self,request):
+        # 清楚用户的session信息
+        logout(request)
+        # 跳转首页
+        return redirect(reverse('goods:index'))
+
+
 # /user
 class UserInfoView(LoginRequiredMixin,View):
     '''用户中心'''
     def get(self,request):
         '''显示'''
-        print('================fttr===============')
-        return render(request,'user_center_info.html',{'page':'user'})
+        # Django会给request对象添加一个属性,request.user
+        # 如果用户未登录--->user为AnoymousUser类的一个实例
+        # 如果用户登录---> user为User类的一个实例
+
+        # 获取用户的个人信息
+        user = request.user
+        addr = Address.objects.get_default_address(user=user)
+
+
+
+        # TODO:获取用户的历史记录
+
+
+        # 除了给模板文件传递变量,django也会将request.user也传给模板文件
+        return render(request,'user_center_info.html',{'page':'user','address':addr})
 
 # /user/address
 class AddressView(LoginRequiredMixin,View):
     '''用户地址中心'''
     def get(self,request):
         '''显示'''
-        return render(request,'user_center_site.html',{'page':'address'})
+        # 获取用户的默认收获地址
+        user = request.user
+        # try:
+        #     address = Address.objects.get(user = user,is_default = True)
+        # except Address.DoesNotExist:
+        #     # 则不存在默认地址
+        #     address = None
+        address = Address.objects.get_default_address(user=user)
+        print(address)
+        # 将地址返回进行判断
+        return render(request,'user_center_site.html',{'page':'address', 'address':address})
+
+    def post(self,request):
+        '''添加地址'''
+        #1. 接收数据
+        receiver = request.POST.get('receiver')
+        addr = request.POST.get('addr')
+        zip_code = request.POST.get('zip_code')
+        phone = request.POST.get('phone')
+        #2. 校验数据
+        if not all([receiver,addr,phone]):
+            return render(request,'user_center_site.html',{'errmsg':'信息不完整'})
+            # 校验手机号
+        if not re.match(r'^1[3|4|5|7|8|][0-9]{9}$',phone):
+            return render(request,'user_center_site.html',{'errmsg':'手机格式不正确'})
+        #3. 处理
+        # 处理操作:
+            # 已存在默认收获地址,则添加的地址不作为默认收获地址;否则作为默认收获地址
+        user = request.user
+        # try:
+        #     address = Address.objects.get(user = user,is_default = True)
+        # except Address.DoesNotExist:
+        #     address = None
+            # 则不存在默认地址
+        address = Address.objects.get_default_address(user=user)
+        if address:
+            is_default = False
+        else:
+            is_default = True
+
+        # 添加地址
+        Address.objects.create(
+            user=user,
+            receiver = receiver,
+            addr = addr,
+            zip_code = zip_code,
+            phone= phone,
+            is_default = is_default
+        )
+
+        return render(request,'user_center_site.html',{'page':'address','address':address})
+
+
 
 
 # /user/order
@@ -155,4 +231,8 @@ class UserOrderView(LoginRequiredMixin,View):
     '''用户订购中心'''
     def get(self,request):
         '''显示'''
+
+        #TODO:获取用户的订单信息
+
+
         return render(request,'user_center_order.html',{'page':'order'})
