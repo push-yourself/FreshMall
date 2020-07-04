@@ -196,16 +196,7 @@ CACHES = {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "PASSWORD": "123456", # 数据库密码
         }
-    },
-    # 存放sms验证码
-    # "sms_codes": {
-    #     "BACKEND": "django_redis.cache.RedisCache",
-    #     "LOCATION": "redis://" + REDIS_SERVER + ":5379/2",
-    #     "OPTIONS": {
-    #         "CLIENT_CLASS": "django_redis.client.DefaultClient",
-    #         "PASSWORD": "123456", # 数据库密码
-    #     }
-    # }
+    }
 }
 # 修改了Django的Session机制使用redis保存，且使用名为'session'的redis配置。
 # 此处修改Django的Session机制存储主要是为了给Admin站点使用。
@@ -214,4 +205,14 @@ SESSION_CACHE_ALIAS = "session"
 # 配置登录url地址
 
 LOGIN_URL='/user/login' # /accounts/login
+
+# 设置Django的文件存储类
+DEFAULT_FILE_STORAGE = 'utils.fdfs.storage.FDFStorage'
+
+
+# 自定义配置项
+# 设置FDFS的client.config文件路径
+FDFS_FILE_CONFIG = './utils/fdfs/client.conf'
+# 设置fdfs存储服务器上的nginx的IP与端口号
+FDFS_URL = 'http://127.0.0.1:8888/'
 
