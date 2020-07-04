@@ -161,7 +161,7 @@ STATICFILES_DIRS = [
 
 
 
-# # Django的缓存配置
+# Django的缓存配置
 # CACHES = {
 #     "default": {
 #         "BACKEND": "django_redis.cache.RedisCache",
@@ -176,8 +176,41 @@ STATICFILES_DIRS = [
 # SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 # SESSION_CACHE_ALIAS = "default"
 
-
-
+# Redis 数据库
+REDIS_SERVER = '127.0.0.1' # 数据库IP或域名
+CACHES = {
+    # 缓存view数据
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://" + REDIS_SERVER + ":6379/0",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "PASSWORD": "123456", # 数据库密码
+        }
+    },
+    # 缓存登录session
+    "session": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://" + REDIS_SERVER + ":6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "PASSWORD": "123456", # 数据库密码
+        }
+    },
+    # 存放sms验证码
+    # "sms_codes": {
+    #     "BACKEND": "django_redis.cache.RedisCache",
+    #     "LOCATION": "redis://" + REDIS_SERVER + ":5379/2",
+    #     "OPTIONS": {
+    #         "CLIENT_CLASS": "django_redis.client.DefaultClient",
+    #         "PASSWORD": "123456", # 数据库密码
+    #     }
+    # }
+}
+# 修改了Django的Session机制使用redis保存，且使用名为'session'的redis配置。
+# 此处修改Django的Session机制存储主要是为了给Admin站点使用。
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = "session"
 # 配置登录url地址
 
 LOGIN_URL='/user/login' # /accounts/login
