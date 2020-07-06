@@ -11,6 +11,7 @@ from django.views.generic.base import View
 from django_redis import get_redis_connection
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer, SignatureExpired
 
+from celery_tasks.tasks import send_register_active_email
 from freshmall.settings import SECRET_KEY, EMAIL_FROM
 from goods.models import GoodsSKU
 from user.models import User, Address
@@ -58,14 +59,8 @@ class RegisterView(View):
         info = {'confirm': user.id}  # 根据情况去自定义数据类型
         token = serializer.dumps(info).decode()
         # 2.发送邮件
-        # 组织邮件信息
-        subject = 'freshmall用户激活'
-        message = '<a href="http://127.0.0.1:8000/user/active/%s">点击激活</a>' % (token)
-        sender = EMAIL_FROM
-        receiver = [email]
-        html_msg = message  # 如果含有html标签，则使用html_message
-        # 会可能出现阻塞，耗时严重·采用异步实现「
-        send_mail(subject, message, sender, receiver, html_message=message)
+        # 发邮件[通过异步实现]
+        send_register_active_email.delay(email, username, token)
         # 4.返回应答(注册成功之后，跳转至首页)
         return redirect(reverse('goods:index'))
 
