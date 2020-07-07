@@ -11,12 +11,11 @@ from django.views.generic.base import View
 from django_redis import get_redis_connection
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer, SignatureExpired
 
-from celery_tasks.tasks import send_register_active_email
 from freshmall.settings import SECRET_KEY, EMAIL_FROM
 from goods.models import GoodsSKU
 from user.models import User, Address
 from utils.mixin import LoginRequiredMixin
-
+from user import task
 
 class RegisterView(View):
     def get(self, request: HttpRequest):
@@ -60,7 +59,7 @@ class RegisterView(View):
         token = serializer.dumps(info).decode()
         # 2.发送邮件
         # 发邮件[通过异步实现]
-        send_register_active_email.delay(email, username, token)
+        task.send_register_active_email.delay(email, username, token)
         # 4.返回应答(注册成功之后，跳转至首页)
         return redirect(reverse('goods:index'))
 

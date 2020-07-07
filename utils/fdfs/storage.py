@@ -13,7 +13,7 @@ class FDFStorage(Storage):
             client_config =settings.FDFS_FILE_CONFIG
         self.client_config = client_config
         if base_url is None:
-            base_url =settings.BASE_DIR
+            base_url =settings.FDFS_URL
         self.base_url = base_url
 
     def _open(self,name,mode='rb'):
@@ -65,5 +65,6 @@ class FDFStorage(Storage):
         :param name:
         :return:
         '''
+
         return self.base_url+name
 

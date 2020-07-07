@@ -53,7 +53,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -143,7 +143,7 @@ USE_L10N = True
 
 USE_TZ = True
 
-# 富文本编辑配置
+# 富文本编辑配置TINYMCE_DEFAULT_CONFIG
 TINYMCE_DEFAULT_CONFIG = {
     'theme':'advanced',# 主题
     'width':600,
@@ -183,7 +183,7 @@ CACHES = {
     # 缓存view数据
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://" + REDIS_SERVER + ":6379/0",
+        "LOCATION": "redis://" + REDIS_SERVER + ":6379/2",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "PASSWORD": "123456", # 数据库密码
@@ -217,3 +217,9 @@ FDFS_FILE_CONFIG = './utils/fdfs/client.conf'
 # 设置fdfs存储服务器上的nginx的IP与端口号
 FDFS_URL = 'http://127.0.0.1:8888/'
 
+
+CELERY_BROKER_URL = 'redis://:123456@127.0.0.1:6379/3' # Broker配置，使用Redis作为消息中间件
+
+CELERY_RESULT_BACKEND = 'redis://:123456@127.0.0.1:6379/4' # BACKEND配置，这里使用redis
+
+CELERY_RESULT_SERIALIZER = 'json' # 结果序列化方案
