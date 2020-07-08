@@ -82,19 +82,17 @@ class DetailView(View):
         '''显示详情页'''
         try:
             sku = GoodsSKU.objects.get(id=goods_id)
+            print(sku.image.url)
         except GoodsSKU.DoesNotExist:
             # 商品不存在
             return redirect(reverse('goods:index'))
 
         # 获取商品的分类信息
         types = GoodsType.objects.all()
-
         # 获取商品的评论信息
         sku_orders = OrderGoods.objects.filter(sku=sku).exclude(comment='')
-
         # 获取新品信息
         new_skus = GoodsSKU.objects.filter(type=sku.type).order_by('-create_time')[:2]
-
         # 获取同一个SPU的其他规格商品
         same_spu_skus = GoodsSKU.objects.filter(goods=sku.goods).exclude(id=goods_id)
 
@@ -106,7 +104,6 @@ class DetailView(View):
             conn = get_redis_connection('default')
             cart_key = 'cart_%d' % user.id
             cart_count = conn.hlen(cart_key)
-
             # 添加用户的历史记录
             conn = get_redis_connection('default')
             history_key = 'history_%d'%user.id
@@ -116,9 +113,9 @@ class DetailView(View):
             conn.lpush(history_key, goods_id)
             # 只保存用户最新浏览的5条信息
             conn.ltrim(history_key, 0, 4)
-
         # 组织模板上下文
-        context = {'sku':sku, 'types':types,
+        context = {'sku':sku,
+                   'types':types,
                    'sku_orders':sku_orders,
                    'new_skus':new_skus,
                    'same_spu_skus':same_spu_skus,
@@ -176,7 +173,21 @@ class ListView(View):
         # 获取第page页的Page实例对象
         skus_page = paginator.page(page)
 
-        # todo: 进行页码的控制，页面上最多显示5个页码
+        # todo: 进行页码的控制，页面上最多显示5个页码(实际存在6页)
+        #1. 总页数小于5页
+        #2. 如果当前页为前三页,显示前五页的内容;12345
+        #   如果当前页为后三页,显示后五页23456
+        #3. 其他情况,显示当前页的前2页,当前页,当前页的后两页
+        num_pages = paginator.num_pages
+        if num_pages < 5:
+            pages = range(1,num_pages+1)
+        elif page <=3:
+            pages = range(1,6)
+        elif num_pages - page <=2:
+            range(num_pages-4 ,num_pages+1)
+        else:
+            range(page-2,page+3)
+
 
         # 获取新品信息
         new_skus = GoodsSKU.objects.filter(type=type).order_by('-create_time')[:2]
@@ -191,11 +202,13 @@ class ListView(View):
             cart_count = conn.hlen(cart_key)
 
         # 组织模板上下文
-        context = {'type':type, 'types':types,
+        context = {'type':type,
+                   'types':types,
                    'skus_page':skus_page,
                    'new_skus':new_skus,
                    'cart_count':cart_count,
-                   'sort':sort}
+                   'sort':sort,
+                   'pages':page}
 
         # 使用模板
         return render(request, 'list.html', context)

@@ -40,7 +40,7 @@ class OrderGoods(BaseModel):
     '''订单商品模型类'''
     count = models.IntegerField(default=1,verbose_name='商品SKU')
     price = models.DecimalField(max_digits=10,decimal_places=2,verbose_name='商品价格')
-    comment = models.CharField(max_length=256,verbose_name='评论')
+    comment = models.CharField(max_length=256,default = '', verbose_name='评论')
     # 外键关联
     order = models.ForeignKey('OrderInfo',verbose_name='订单',on_delete=models.CASCADE)
     sku = models.ForeignKey('goods.GoodsSKU',verbose_name='商品SKU',on_delete=models.CASCADE)
